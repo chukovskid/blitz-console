@@ -55,9 +55,11 @@ footer {{ visibility: hidden; }}
 [data-testid="stStatusWidget"] {{ display: none; }}
 .viewerBadge_container__1QSob {{ display: none; }}
 
-/* Hide the sidebar collapse button (we keep sidebar open) */
+/* Hide just the sidebar collapse button. Do NOT hide stSidebarHeader —
+   in Streamlit 1.57 the multipage nav lives inside it. */
 [data-testid="stSidebarCollapseButton"],
-[data-testid="collapsedControl"] {{ display: none !important; }}
+[data-testid="collapsedControl"],
+button[kind="headerNoPadding"] {{ display: none !important; }}
 
 /* --- Base typography (scoped to skip icon elements) --------------------- */
 html, body, [data-testid="stApp"], button, input, textarea, select,
@@ -170,12 +172,6 @@ p, .stMarkdown p, label {{
   padding-right: 0.6rem;
 }}
 
-/* Hide Streamlit's auto sidebar header (filename garbage like keyboard_double_arrow) */
-[data-testid="stSidebarHeader"] {{ display: none !important; }}
-[data-testid="stSidebar"] [data-testid="stIconMaterial"]:has-text("keyboard_double_arrow_left") {{
-  display: none !important;
-}}
-
 /* Sidebar brand area we add manually */
 .bc-brand {{
   display: flex;
@@ -239,10 +235,7 @@ p, .stMarkdown p, label {{
 [data-testid="stSidebarNav"] a[aria-current="page"] p {{
   color: {BG} !important;
 }}
-/* Hide bullet markers if any */
-[data-testid="stSidebarNav"] a > span:first-child {{
-  display: none !important;
-}}
+/* (Removed an over-aggressive rule that was hiding nav page labels in 1.57) */
 
 /* Sidebar section headings (Filters etc.) */
 [data-testid="stSidebar"] h3 {{
