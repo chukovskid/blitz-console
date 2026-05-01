@@ -41,6 +41,9 @@ design.apply()
 require_auth()
 db.init_db()
 
+with st.sidebar:
+    design.sidebar_brand()
+
 
 # ----- Header ---------------------------------------------------------------
 
@@ -96,48 +99,31 @@ with left:
     st.markdown("## Recent runs")
     runs = db.list_runs(limit=10)
     if not runs:
-        st.markdown(
-            '<div class="bc-card-muted">No runs yet — '
-            'open <b>Build Search</b> to launch your first one.</div>',
-            unsafe_allow_html=True,
+        design.empty_state(
+            "No runs yet. Open <b>Build Search</b> to launch your first one."
         )
     else:
         rows_html = []
         for r in runs:
-            status = r["status"]
-            dot = design.status_dot(status if status in
-                                    ("running", "done", "error", "queued", "cancelled")
-                                    else "queued")
+            status = r["status"] if r["status"] in (
+                "running", "done", "error", "queued", "cancelled"
+            ) else "queued"
+            dot = design.status_dot(status)
             name = r.get("icp_name") or "Untitled"
             emails = r.get("emails_found") or 0
             credits_used = r.get("credits_used") or 0
             ts = r.get("started_at")
-            when = (
-                time.strftime("%b %d · %H:%M", time.localtime(ts)) if ts else "—"
-            )
+            when = time.strftime("%b %d · %H:%M", time.localtime(ts)) if ts else "—"
             rows_html.append(f"""
-            <div style="display:grid;grid-template-columns:24px 1fr auto auto;
-                        align-items:center;padding:14px 4px;
-                        border-bottom:1px solid {design.BORDER};font-size:13.5px;">
-                <div>{dot}</div>
-                <div>
-                    <div style="font-weight:500;color:{design.TEXT};">#{r['id']} — {name}</div>
-                    <div style="color:{design.TEXT_3};font-size:11.5px;margin-top:2px;">
-                        {when} · {status}
-                    </div>
-                </div>
-                <div style="color:{design.TEXT_2};text-align:right;padding-right:18px;
-                            font-feature-settings:'tnum' 1;">
-                    <span style="color:{design.TEXT};font-weight:500;">{emails}</span>
-                    <span style="color:{design.TEXT_3};font-size:11.5px;"> emails</span>
-                </div>
-                <div style="color:{design.TEXT_2};text-align:right;
-                            font-feature-settings:'tnum' 1;">
-                    <span style="color:{design.TEXT};font-weight:500;">{credits_used}</span>
-                    <span style="color:{design.TEXT_3};font-size:11.5px;"> cr</span>
-                </div>
-            </div>
-            """)
+            <div class="bc-run-row">
+              <div>{dot}</div>
+              <div>
+                <div class="bc-run-name">#{r['id']} — {name}</div>
+                <div class="bc-run-meta">{when} · {status}</div>
+              </div>
+              <div class="bc-run-stat"><strong>{emails:,}</strong><span>emails</span></div>
+              <div class="bc-run-stat"><strong>{credits_used:,}</strong><span>cr</span></div>
+            </div>""")
         st.markdown("".join(rows_html), unsafe_allow_html=True)
 
 
@@ -145,24 +131,18 @@ with right:
     st.markdown("## Saved ICPs")
     icps = db.list_icps()
     if not icps:
-        st.markdown(
-            '<div class="bc-card-muted">'
-            'Build a filter set and save it from <b>Build Search</b>.'
-            '</div>',
-            unsafe_allow_html=True,
+        design.empty_state(
+            "Build a filter set and save it from <b>Build Search</b>."
         )
     else:
         items = []
         for i in icps[:8]:
             updated = time.strftime("%b %d", time.localtime(i["updated_at"]))
-            items.append(f"""
-            <div style="display:flex;justify-content:space-between;
-                        align-items:baseline;padding:10px 4px;
-                        border-bottom:1px solid {design.BORDER};font-size:13.5px;">
-                <span style="color:{design.TEXT};font-weight:500;">{i['name']}</span>
-                <span style="color:{design.TEXT_3};font-size:11.5px;">{updated}</span>
-            </div>
-            """)
+            items.append(
+                f'<div class="bc-icp-item">'
+                f'<span>{i["name"]}</span><span>{updated}</span>'
+                f'</div>'
+            )
         st.markdown("".join(items), unsafe_allow_html=True)
 
 

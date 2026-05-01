@@ -22,6 +22,9 @@ st.set_page_config(page_title="Saved ICPs · Blitz", page_icon="◐", layout="wi
 design.apply()
 require_auth()
 
+with st.sidebar:
+    design.sidebar_brand()
+
 design.page_header(
     title="Saved ICPs",
     subtitle="Filter presets, ready to clone or load.",
@@ -30,10 +33,9 @@ design.page_header(
 
 icps = db.list_icps()
 if not icps:
-    st.markdown(
-        '<div class="bc-card-muted">No ICPs yet. Build a filter set on '
-        '<b>Build search</b> and click <b>Save profile</b>.</div>',
-        unsafe_allow_html=True,
+    design.empty_state(
+        "No ICPs yet. Build a filter set on <b>Build search</b> "
+        "and click <b>Save profile</b>."
     )
     st.stop()
 

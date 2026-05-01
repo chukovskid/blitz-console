@@ -21,6 +21,9 @@ st.set_page_config(page_title="Run history · Blitz", page_icon="◐", layout="w
 design.apply()
 require_auth()
 
+with st.sidebar:
+    design.sidebar_brand()
+
 design.page_header(
     title="Run history",
     subtitle="Live progress, downloadable outputs, audit trail.",
@@ -33,10 +36,7 @@ with cols[1]:
 
 runs = db.list_runs(limit=50)
 if not runs:
-    st.markdown(
-        '<div class="bc-card-muted">No runs yet.</div>',
-        unsafe_allow_html=True,
-    )
+    design.empty_state("No runs yet. Launch one from <b>Build Search</b>.")
     st.stop()
 
 any_live = False
@@ -65,19 +65,31 @@ for r in runs:
     if is_live:
         any_live = True
 
-    status = r["status"]
+    status = r["status"] if r["status"] in (
+        "running", "done", "error", "queued", "cancelled"
+    ) else "queued"
     name = r.get("icp_name") or "Untitled"
-    title_html = (
-        f"{design.status_dot(status if status in ('running','done','error','queued','cancelled') else 'queued')}"
-        f"<span style='font-weight:500;'>#{r['id']} — {name}</span>"
-        f"<span style='color:{design.TEXT_3};margin-left:0.6rem;font-size:12px;'>{status}</span>"
+    when = (
+        time.strftime("%b %d · %H:%M", time.localtime(r["started_at"]))
+        if r.get("started_at") else "—"
     )
 
-    with st.expander(" ", expanded=is_live):
-        st.markdown(f'<div style="margin-top:-2.4rem;">{title_html}</div>',
-                    unsafe_allow_html=True)
-        st.markdown('<div style="height:0.5rem"></div>', unsafe_allow_html=True)
+    # Render the row as a clean header above the expander, then put details
+    # inside an unlabelled expander positioned right below.
+    st.markdown(
+        f'<div class="bc-run-row" style="border-bottom:none;padding-bottom:6px;">'
+        f'<div>{design.status_dot(status)}</div>'
+        f'<div>'
+        f'<div class="bc-run-name">#{r["id"]} — {name}</div>'
+        f'<div class="bc-run-meta">{when} · {status}</div>'
+        f'</div>'
+        f'<div class="bc-run-stat"><strong>{r.get("emails_found") or 0:,}</strong><span>emails</span></div>'
+        f'<div class="bc-run-stat"><strong>{r.get("credits_used") or 0:,}</strong><span>cr</span></div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
 
+    with st.expander("Details", expanded=is_live):
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Leads", r.get("leads_total") or 0)
         c2.metric("Emails", r.get("emails_found") or 0)

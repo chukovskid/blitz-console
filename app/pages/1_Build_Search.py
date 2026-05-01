@@ -40,6 +40,9 @@ st.set_page_config(page_title="Build Search · Blitz", page_icon="◐", layout="
 design.apply()
 require_auth()
 
+with st.sidebar:
+    design.sidebar_brand()
+
 
 # ---- session state init ----
 if "filters" not in st.session_state:

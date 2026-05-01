@@ -38,6 +38,9 @@ st.set_page_config(page_title="Lookup · Blitz", page_icon="◐", layout="wide")
 design.apply()
 require_auth()
 
+with st.sidebar:
+    design.sidebar_brand()
+
 design.page_header(
     title="Lookup tools",
     subtitle="Single-shot calls. Each costs credits — see the button label.",
