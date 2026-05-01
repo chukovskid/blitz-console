@@ -1,0 +1,45 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Local Claude state (contains permission cache that may include API keys)
+.claude/
+
+# Python
+*.pyc
+__pycache__/
+.venv/
+venv/
+
+# App state
+blitz.db
+blitz.db-journal
+blitz.db-wal
+blitz.db-shm
+runs/
+
+# Logs
+*.log
+streamlit.log
+search.log
+enrich.log
+
+# Generated lead data (PII — never commit)
+leads_raw*
+leads_enriched*
+leads_for_saleshandy*
+leads_all*
+leads_*.csv
+leads_*.json
+*.raw
+search.log
+enrich.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

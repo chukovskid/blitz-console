@@ -1,0 +1,14 @@
+.git
+.venv
+.env
+.env.*
+!.env.example
+.claude/
+__pycache__/
+*.pyc
+blitz.db*
+runs/
+*.log
+leads_*.csv
+leads_*.json
+.DS_Store
