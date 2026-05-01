@@ -1,0 +1,61 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  unit-and-smoke:
+    name: Unit + smoke (no API)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests (unit + Streamlit smoke)
+        run: |
+          # Skips integration tests automatically (BLITZ_API_KEY is dummy in conftest).
+          pytest tests/ -v --tb=short -x
+
+  live-healthcheck:
+    name: Live API healthcheck (free, key-info only)
+    runs-on: ubuntu-latest
+    # Only runs on push to main, not PRs from forks (where the secret isn't available).
+    if: github.event_name != 'pull_request' && github.repository == 'chukovskid/blitz-console'
+    needs: unit-and-smoke
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Healthcheck (key-info — 0 credits)
+        env:
+          BLITZ_API_KEY: ${{ secrets.BLITZ_API_KEY }}
+        run: |
+          if [ -z "$BLITZ_API_KEY" ]; then
+            echo "::warning::No BLITZ_API_KEY secret set — skipping live healthcheck."
+            exit 0
+          fi
+          pytest tests/test_api_integration.py -v --tb=short -k "key_info"

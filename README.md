@@ -4,7 +4,7 @@ A local-first prospecting UI on top of the [Blitz API](https://blitz-api.ai) —
 
 Built because the official API has no console for ICP exploration. Lets you tune filters and see the result count change *before* spending credits on a real run.
 
-![Build Search screenshot — see app/pages/1_Build_Search.py](https://img.shields.io/badge/built_with-Streamlit_1.57-FF4B4B?logo=streamlit) ![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue) ![License](https://img.shields.io/badge/license-MIT-green)
+![tests](https://github.com/chukovskid/blitz-console/actions/workflows/test.yml/badge.svg) ![Streamlit](https://img.shields.io/badge/built_with-Streamlit_1.57-FF4B4B?logo=streamlit) ![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue) ![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
@@ -97,6 +97,27 @@ runs/run_NNNNNN/                  per-run dir: filters.json, log, raw json, enri
 ```
 
 The Streamlit UI never blocks on long jobs — clicking **Run** spawns `blitz_pipeline.py` as a separate process that survives Streamlit reruns. **Run History** polls the log file + DB row for live progress.
+
+## Tests
+
+```bash
+make test           # unit + Streamlit smoke (no API, no credits) — ~2s
+make test-live      # adds free live healthcheck (needs BLITZ_API_KEY)
+make test-all       # adds opt-in count tests (each costs 1 credit)
+```
+
+Layered:
+
+| Layer | What | Cost | Runs in CI |
+|---|---|---|---|
+| `tests/test_filter_model.py` | Filter dataclass ↔ JSON ↔ Blitz body shape | free | ✅ |
+| `tests/test_pipeline.py` | Pipeline helpers (deep merge, dedupe, tier priority) | free | ✅ |
+| `tests/test_reference_data.py` | Industries / functions / countries reference enums | free | ✅ |
+| `tests/test_pages_smoke.py` | All 6 Streamlit pages render without crashing | free | ✅ |
+| `tests/test_api_integration.py::test_key_info_*` | Real API healthcheck via `/v2/account/key-info` | free | ✅ on push to main |
+| `tests/test_api_integration.py::test_count_*` | Real `count_people` calls | 1 cr each | only via `BLITZ_RUN_LIVE_COUNT_TESTS=1` |
+
+GitHub Actions runs the free layers automatically on every push and PR.
 
 ## Secret hygiene
 
