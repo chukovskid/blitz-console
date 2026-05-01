@@ -230,3 +230,92 @@ EMPLOYEE_RANGE_BUCKETS = [
     "1-10", "11-50", "51-200", "201-500", "501-1000",
     "1001-5000", "5001-10000", "10001+",
 ]
+
+
+def _join_or(values: list[str], max_show: int = 3) -> str:
+    """Join values for prose: 'A, B & C' or 'A, B & 4 more'."""
+    if not values:
+        return ""
+    if len(values) == 1:
+        return values[0]
+    if len(values) <= max_show:
+        return ", ".join(values[:-1]) + " & " + values[-1]
+    extra = len(values) - max_show
+    return ", ".join(values[:max_show]) + f" + {extra} more"
+
+
+def filter_summary(filters: SearchFilters) -> str:
+    """Plain-English description of the active filters. Empty -> short hint."""
+    cf, pf = filters.company, filters.people
+
+    # ---- subject (people clause) ----
+    subj_parts: list[str] = []
+    if pf.job_title.include:
+        # Strip [brackets] for prose
+        titles = [t.strip("[]") for t in pf.job_title.include]
+        subj_parts.append(_join_or(titles))
+    elif pf.job_level:
+        subj_parts.append(_join_or(pf.job_level) + " level")
+    elif pf.job_function:
+        subj_parts.append(_join_or(pf.job_function) + " function")
+    else:
+        subj_parts.append("People")
+
+    if pf.job_title.include and pf.job_level:
+        subj_parts.append(f"({_join_or(pf.job_level)})")
+
+    subject = " ".join(subj_parts)
+
+    # ---- company clause ----
+    co_parts: list[str] = []
+    if cf.industry.include:
+        co_parts.append(f"{_join_or(cf.industry.include)} companies")
+    elif cf.type_.include:
+        co_parts.append(f"{_join_or(cf.type_.include)} companies")
+    else:
+        co_parts.append("companies")
+
+    # size
+    if cf.employee_count_min is not None or cf.employee_count_max is not None:
+        a = cf.employee_count_min or 0
+        b = cf.employee_count_max or "∞"
+        co_parts.append(f"with {a}–{b} employees")
+    elif cf.employee_range:
+        co_parts.append(f"sized {_join_or(cf.employee_range)}")
+
+    # founded
+    if cf.founded_year_min and cf.founded_year_max:
+        co_parts.append(f"founded {cf.founded_year_min}–{cf.founded_year_max}")
+    elif cf.founded_year_min:
+        co_parts.append(f"founded after {cf.founded_year_min}")
+    elif cf.founded_year_max:
+        co_parts.append(f"founded before {cf.founded_year_max}")
+
+    # ---- location clause ----
+    loc_parts: list[str] = []
+    geo = (cf.hq_country_code or pf.location_country_code
+           or cf.hq_continent or pf.location_continent
+           or cf.hq_sales_region or pf.location_sales_region)
+    if cf.hq_country_code:
+        loc_parts.append(f"in {_join_or(cf.hq_country_code)}")
+    elif pf.location_country_code:
+        loc_parts.append(f"based in {_join_or(pf.location_country_code)}")
+    elif cf.hq_continent:
+        loc_parts.append(f"in {_join_or(cf.hq_continent)}")
+    elif pf.location_continent:
+        loc_parts.append(f"in {_join_or(pf.location_continent)}")
+    elif cf.hq_sales_region:
+        loc_parts.append(f"in {_join_or(cf.hq_sales_region)}")
+
+    if cf.hq_city.include:
+        loc_parts.append(f"({_join_or(cf.hq_city.include)})")
+    elif pf.location_city:
+        loc_parts.append(f"({_join_or(pf.location_city)})")
+
+    if filters.is_empty():
+        return ""
+
+    sentence = f"{subject} at {' '.join(co_parts)}"
+    if loc_parts:
+        sentence += " " + " ".join(loc_parts)
+    return sentence + "."

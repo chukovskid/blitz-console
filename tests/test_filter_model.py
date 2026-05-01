@@ -6,7 +6,7 @@ These guard the contract between the UI (Streamlit widgets), persistence
 
 from __future__ import annotations
 
-from app.lib.filter_model import RunOptions, SearchFilters
+from app.lib.filter_model import RunOptions, SearchFilters, filter_summary
 
 
 def test_empty_filters_serialize_to_empty_body():
@@ -137,3 +137,44 @@ def test_run_options_defaults():
     assert o.per_company_cap == 2
     assert o.enrich_emails is True
     assert o.hard_credit_cap == 5000
+
+
+# -------- filter_summary --------
+
+
+def test_filter_summary_empty():
+    assert filter_summary(SearchFilters()) == ""
+
+
+def test_filter_summary_minimal():
+    sf = SearchFilters()
+    sf.company.industry.include = ["Software Development"]
+    s = filter_summary(sf)
+    assert "Software Development" in s
+    assert "companies" in s
+
+
+def test_filter_summary_full():
+    sf = SearchFilters()
+    sf.company.industry.include = ["Software Development"]
+    sf.company.employee_count_min = 20
+    sf.company.employee_count_max = 100
+    sf.company.hq_country_code = ["US", "GB"]
+    sf.people.job_title.include = ["[Founder]", "Co-Founder"]
+    s = filter_summary(sf)
+    # Subject = title; brackets stripped
+    assert "Founder" in s and "Co-Founder" in s
+    assert "[" not in s
+    # Company clause
+    assert "Software Development" in s
+    assert "20" in s and "100" in s
+    # Location clause
+    assert "US" in s
+
+
+def test_filter_summary_falls_back_to_level_when_no_title():
+    sf = SearchFilters()
+    sf.people.job_level = ["C-Team"]
+    sf.company.industry.include = ["Banking"]
+    s = filter_summary(sf)
+    assert "C-Team" in s

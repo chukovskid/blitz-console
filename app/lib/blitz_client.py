@@ -66,6 +66,17 @@ def count_people(filters: dict) -> dict:
     return _request("POST", "/v2/search/people", body)
 
 
+def preview_people(filters: dict, n: int = 5) -> dict:
+    """Sample preview (n credits). Returns total_results + n example records.
+
+    Used for "does my ICP look right?" sanity check before launching a full
+    run. n must be 1–50 per Blitz's max_results limit.
+    """
+    body = dict(filters)
+    body["max_results"] = max(1, min(50, n))
+    return _request("POST", "/v2/search/people", body)
+
+
 def count_companies(filters: dict) -> dict:
     """Cheap count for /v2/search/companies. 1 credit per call (1 result returned)."""
     body = dict(filters)
