@@ -53,11 +53,30 @@ header[data-testid="stHeader"] {{
   background: transparent;
 }}
 
-/* When sidebar is collapsed, surface the expand button clearly */
+/* When sidebar is collapsed, force the expand chevron to a fixed,
+   findable spot in the top-left corner. We target every test-id Streamlit
+   has used across versions so this stays robust. */
 [data-testid="stSidebarCollapsedControl"],
-[data-testid="collapsedControl"] {{
-  display: block !important;
+[data-testid="collapsedControl"],
+[data-testid="stExpandSidebarButton"],
+button[kind="header"]:not([data-testid="stSidebarCollapseButton"]) {{
+  display: flex !important;
   visibility: visible !important;
+  position: fixed !important;
+  top: 12px !important;
+  left: 12px !important;
+  z-index: 9999 !important;
+  background: white !important;
+  border: 1px solid {BORDER} !important;
+  border-radius: 6px !important;
+  padding: 6px !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+  width: auto !important;
+  height: auto !important;
+}}
+[data-testid="stSidebarCollapsedControl"]:hover,
+[data-testid="collapsedControl"]:hover {{
+  background: {BG_2} !important;
 }}
 
 /* Tighter, wider container.
