@@ -105,9 +105,11 @@ code, pre, [data-testid="stCodeBlock"], [data-testid="stCodeBlock"] * {{
 
 /* --- Page container ------------------------------------------------------ */
 .main .block-container {{
-  padding-top: 3rem;
-  padding-bottom: 5rem;
-  max-width: 1140px;
+  padding-top: 2.5rem;
+  padding-bottom: 4rem;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+  max-width: 1280px;
 }}
 [data-testid="stAppViewContainer"] {{ background: {BG}; }}
 [data-testid="stMain"] {{ background: {BG}; }}
@@ -615,6 +617,30 @@ hr, [data-testid="stDivider"] {{
 .bc-icp-item:last-child {{ border-bottom: none; }}
 .bc-icp-item span:first-child {{ color: {TEXT}; font-weight: 500; }}
 .bc-icp-item span:last-child {{ color: {TEXT_3}; font-size: 11.5px; }}
+
+/* Active-filter chips */
+.bc-chips {{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 0 0;
+}}
+.bc-chip {{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px 4px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  background: {BG_2};
+  border: 1px solid {BORDER};
+  color: {TEXT};
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+}}
+.bc-chip-key {{ color: {TEXT_3}; font-weight: 500; font-size: 11px; }}
+.bc-chip-val {{ color: {TEXT}; }}
 
 /* Empty state */
 .bc-empty {{
