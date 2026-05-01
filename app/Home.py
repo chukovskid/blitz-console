@@ -38,11 +38,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 design.apply()
+design.topnav(current="Home")
 require_auth()
 db.init_db()
-
-with st.sidebar:
-    design.sidebar_brand()
 
 
 # ----- Header ---------------------------------------------------------------

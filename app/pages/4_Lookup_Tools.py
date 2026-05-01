@@ -36,10 +36,8 @@ from app.lib.blitz_client import (  # noqa: E402
 
 st.set_page_config(page_title="Lookup · Blitz", page_icon="◐", layout="wide")
 design.apply()
+design.topnav(current="Lookup_Tools")
 require_auth()
-
-with st.sidebar:
-    design.sidebar_brand()
 
 design.page_header(
     title="Lookup tools",

@@ -35,10 +35,8 @@ from app.lib.runner import (  # noqa: E402
 
 st.set_page_config(page_title="Run history · Blitz", page_icon="◐", layout="wide")
 design.apply()
+design.topnav(current="Run_History")
 require_auth()
-
-with st.sidebar:
-    design.sidebar_brand()
 
 design.page_header(
     title="Run history",

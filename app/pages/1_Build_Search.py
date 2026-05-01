@@ -39,10 +39,8 @@ from app.lib.runner import spawn_pipeline_run  # noqa: E402
 st.set_page_config(page_title="Build Search · Blitz", page_icon="◐",
                    layout="wide")
 design.apply()
+design.topnav(current="Build_Search")
 require_auth()
-
-with st.sidebar:
-    design.sidebar_brand()
 
 
 # ---- session state ----

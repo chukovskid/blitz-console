@@ -41,51 +41,72 @@ _CSS = f"""
   letter-spacing: 0 !important;
 }}
 
-/* Hide Streamlit chrome we don't want.
-   Keep the header itself visible — when the sidebar is collapsed, the
-   chevron button to re-open it lives inside the header. Hiding the header
-   would strand users with a collapsed sidebar and no way to bring it back. */
+/* Hide Streamlit's sidebar AND header completely. We render our own
+   top nav via design.topnav() — no flicker, no collapsed-state dead-ends,
+   works the same across every Streamlit version. */
+[data-testid="stSidebar"] {{ display: none !important; }}
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapsedControl"] {{ display: none !important; }}
+header[data-testid="stHeader"] {{ display: none !important; }}
+
 #MainMenu, footer,
 [data-testid="stToolbar"],
 [data-testid="stDecoration"],
 [data-testid="stStatusWidget"] {{ display: none !important; }}
-header[data-testid="stHeader"] {{
-  background: transparent;
-}}
 
-/* When sidebar is collapsed, force the expand chevron to a fixed,
-   findable spot in the top-left corner. We target every test-id Streamlit
-   has used across versions so this stays robust. */
-[data-testid="stSidebarCollapsedControl"],
-[data-testid="collapsedControl"],
-[data-testid="stExpandSidebarButton"],
-button[kind="header"]:not([data-testid="stSidebarCollapseButton"]) {{
-  display: flex !important;
-  visibility: visible !important;
-  position: fixed !important;
-  top: 12px !important;
-  left: 12px !important;
-  z-index: 9999 !important;
-  background: white !important;
-  border: 1px solid {BORDER} !important;
-  border-radius: 6px !important;
-  padding: 6px !important;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
-  width: auto !important;
-  height: auto !important;
-}}
-[data-testid="stSidebarCollapsedControl"]:hover,
-[data-testid="collapsedControl"]:hover {{
-  background: {BG_2} !important;
-}}
-
-/* Tighter, wider container.
-   Top padding is small because the header bar above already gives ~50px
-   of breathing room and contains the sidebar-expand button. */
+/* Container — generous side padding, room for the top nav above. */
 .main .block-container {{
   padding-top: 1rem;
   padding-bottom: 4rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
   max-width: 1280px;
+}}
+
+/* ============================ TOP NAV ============================ */
+
+.bc-topnav {{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0 14px 0;
+  margin-bottom: 1.6rem;
+  border-bottom: 1px solid {BORDER};
+  gap: 24px;
+}}
+.bc-topnav-brand {{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}}
+.bc-topnav-links {{
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}}
+.bc-nav-link {{
+  display: inline-block;
+  padding: 7px 14px;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: {TEXT_2};
+  text-decoration: none !important;
+  border-radius: 6px;
+  transition: background 100ms ease, color 100ms ease;
+}}
+.bc-nav-link:hover {{
+  background: {BG_3};
+  color: {TEXT};
+}}
+.bc-nav-link-active {{
+  background: {TEXT};
+  color: white !important;
+}}
+.bc-nav-link-active:hover {{
+  background: {TEXT};
+  color: white !important;
 }}
 
 /* Sidebar: fixed width, subtle separator */
@@ -383,11 +404,44 @@ def apply() -> None:
 
 
 def sidebar_brand() -> None:
+    """Deprecated — kept for compatibility. Use topnav() instead."""
+    pass
+
+
+# Top-nav route table. Order = display order in the bar.
+# (label_short, url_path, identifier)
+_NAV = [
+    ("Home",        "/",              "Home"),
+    ("Build",       "/Build_Search",  "Build_Search"),
+    ("ICPs",        "/Saved_ICPs",    "Saved_ICPs"),
+    ("Runs",        "/Run_History",   "Run_History"),
+    ("Tools",       "/Lookup_Tools",  "Lookup_Tools"),
+    ("Settings",    "/Settings",      "Settings"),
+]
+
+
+def topnav(current: str = "") -> None:
+    """Always-visible horizontal nav bar. Replaces the Streamlit sidebar.
+
+    `current` is the page identifier (e.g. "Build_Search") used to
+    highlight the active link. Passing an empty string means no link
+    is highlighted.
+    """
+    links = ""
+    for label, path, ident in _NAV:
+        active = " bc-nav-link-active" if ident == current else ""
+        links += (
+            f'<a class="bc-nav-link{active}" href="{path}" target="_self">'
+            f'{label}</a>'
+        )
     st.markdown(
-        '<div class="bc-brand">'
-        '<span class="bc-brand-logo">B</span>'
-        '<span class="bc-brand-name">Blitz Console</span>'
-        '</div>',
+        f'<div class="bc-topnav">'
+        f'<div class="bc-topnav-brand">'
+        f'<span class="bc-brand-logo">B</span>'
+        f'<span class="bc-brand-name">Blitz Console</span>'
+        f'</div>'
+        f'<div class="bc-topnav-links">{links}</div>'
+        f'</div>',
         unsafe_allow_html=True,
     )
 

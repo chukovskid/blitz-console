@@ -18,10 +18,8 @@ from app.lib.auth import require_auth  # noqa: E402
 
 st.set_page_config(page_title="Settings · Blitz", page_icon="◐", layout="wide")
 design.apply()
+design.topnav(current="Settings")
 require_auth()
-
-with st.sidebar:
-    design.sidebar_brand()
 
 design.page_header(
     title="Settings",

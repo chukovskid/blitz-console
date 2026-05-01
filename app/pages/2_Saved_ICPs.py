@@ -35,10 +35,8 @@ from app.lib.runner import spawn_pipeline_run  # noqa: E402
 
 st.set_page_config(page_title="Saved ICPs · Blitz", page_icon="◐", layout="wide")
 design.apply()
+design.topnav(current="Saved_ICPs")
 require_auth()
-
-with st.sidebar:
-    design.sidebar_brand()
 
 design.page_header(
     title="Saved ICPs",
