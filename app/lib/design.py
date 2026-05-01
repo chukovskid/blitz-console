@@ -29,8 +29,16 @@ SUCCESS = "#16A34A"
 WARN = "#D97706"
 DANGER = "#DC2626"
 
-FONT_SANS = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
-FONT_MONO = "'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace"
+# System font stack — instant first paint, no Google Fonts round-trip.
+# Streamlit's default Source Sans Pro is also pulled locally; sticking to
+# system fonts keeps the app feeling snappy.
+FONT_SANS = (
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Source Sans Pro', "
+    "Roboto, 'Helvetica Neue', Arial, sans-serif"
+)
+FONT_MONO = (
+    "ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace"
+)
 
 
 # --------------------------------------------------------------------- styles
@@ -38,10 +46,11 @@ FONT_MONO = "'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace"
 
 _CSS = f"""
 <style>
-/* --- Fonts --------------------------------------------------------------- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0&display=block');
+/* --- Fonts ---------------------------------------------------------------
+   System fonts only for the body. Material Symbols stays so Streamlit's
+   chevrons and icons render as glyphs instead of ligature names. */
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0&display=swap');
 
 /* --- Hide Streamlit chrome ----------------------------------------------- */
 #MainMenu {{ visibility: hidden; }}
@@ -346,18 +355,31 @@ input, textarea {{
   box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.06) !important;
 }}
 
-/* Multiselect chips */
+/* Multiselect chips — soft grey with full text visible, not heavy black */
 [data-baseweb="tag"] {{
-  background: {TEXT} !important;
-  color: {BG} !important;
-  border-radius: 4px !important;
-  font-size: 11.5px !important;
+  background: {BG_3} !important;
+  color: {TEXT} !important;
+  border: 1px solid {BORDER} !important;
+  border-radius: 5px !important;
+  font-size: 12px !important;
   font-weight: 500 !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: 0 !important;
+  padding: 2px 4px 2px 8px !important;
+  margin: 2px 4px 2px 0 !important;
+  height: auto !important;
+  min-height: 24px !important;
 }}
-[data-baseweb="tag"] svg, [data-baseweb="tag"] *, [data-baseweb="tag"] [role="presentation"] {{
-  color: {BG} !important;
-  fill: {BG} !important;
+[data-baseweb="tag"] > span:first-child {{
+  padding: 0 !important;
+  font-family: {FONT_SANS} !important;
+}}
+[data-baseweb="tag"] svg {{
+  color: {TEXT_2} !important;
+  fill: {TEXT_2} !important;
+}}
+[data-baseweb="tag"]:hover svg {{
+  color: {TEXT} !important;
+  fill: {TEXT} !important;
 }}
 
 /* Number input +/- buttons cleaner */
