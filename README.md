@@ -9,13 +9,24 @@ Streamlit app + Python pipeline for the [Blitz API](https://blitz-api.ai). Build
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 
-# 2. Set API key (writes to .env, gitignored)
+# 2. Install pre-commit hook (blocks accidental API-key commits)
+bash scripts/install-hooks.sh
+
+# 3. Set API key (writes to .env, gitignored)
 echo "BLITZ_API_KEY=blitz-..." > .env
 
-# 3. Launch
+# 4. Launch
 .venv/bin/streamlit run app/Home.py
 # → opens http://localhost:8501
 ```
+
+## Secret hygiene
+
+- `.env` (real API key) is gitignored
+- `.env.example` (template with placeholder) is committed
+- `scripts/install-hooks.sh` installs a local pre-commit hook that refuses to commit any file containing a real Blitz API key (matches `blitz-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX` shape with hex chars)
+- The hook also blocks `.env`, `blitz.db`, and `.claude/settings.local.json` from ever being staged
+- GitHub's built-in secret scanning is enabled by default on public repos as a second line of defense
 
 ## Pages
 

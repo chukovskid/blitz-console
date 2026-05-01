@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Block commits that contain a real Blitz API key.
+# Skipped only by --no-verify (don't pass that).
+
+set -e
+
+# Real Blitz keys look like: blitz-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX (32 hex chars across 4 dash-segments).
+# The placeholder in .env.example uses 'X' chars and is allowed.
+PATTERN='blitz-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+
+# Scan only staged content (not working tree).
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
+
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+
+found=0
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  # Skip binary
+  if file --brief --mime "$f" | grep -q "charset=binary"; then continue; fi
+  if git diff --cached -- "$f" | grep -E "^\+" | grep -qE "$PATTERN"; then
+    echo "❌ pre-commit: real API key detected in $f"
+    git diff --cached -- "$f" | grep -nE "^\+.*$PATTERN" | head -3
+    found=$((found+1))
+  fi
+done <<< "$STAGED"
+
+# Also block tracked sensitive files
+for danger in ".env" "blitz.db" ".claude/settings.local.json"; do
+  if echo "$STAGED" | grep -qx "$danger"; then
+    echo "❌ pre-commit: refusing to commit $danger (must stay local)"
+    found=$((found+1))
+  fi
+done
+
+if [ $found -gt 0 ]; then
+  echo ""
+  echo "Fix: remove the secret with 'git restore --staged <file>' and use the .env file (gitignored) instead."
+  exit 1
+fi
+
+exit 0
