@@ -42,16 +42,29 @@ _CSS = f"""
 }}
 
 /* Hide Streamlit chrome we don't want.
-   Keep the sidebar collapse button visible — drawer collapse is a feature. */
+   Keep the header itself visible — when the sidebar is collapsed, the
+   chevron button to re-open it lives inside the header. Hiding the header
+   would strand users with a collapsed sidebar and no way to bring it back. */
 #MainMenu, footer,
 [data-testid="stToolbar"],
 [data-testid="stDecoration"],
 [data-testid="stStatusWidget"] {{ display: none !important; }}
-header[data-testid="stHeader"] {{ background: transparent; height: 0; }}
+header[data-testid="stHeader"] {{
+  background: transparent;
+}}
 
-/* Tighter, wider container */
+/* When sidebar is collapsed, surface the expand button clearly */
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"] {{
+  display: block !important;
+  visibility: visible !important;
+}}
+
+/* Tighter, wider container.
+   Top padding is small because the header bar above already gives ~50px
+   of breathing room and contains the sidebar-expand button. */
 .main .block-container {{
-  padding-top: 2.5rem;
+  padding-top: 1rem;
   padding-bottom: 4rem;
   max-width: 1280px;
 }}
