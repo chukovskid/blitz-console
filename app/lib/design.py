@@ -41,12 +41,12 @@ _CSS = f"""
   letter-spacing: 0 !important;
 }}
 
-/* Hide Streamlit chrome we don't want */
+/* Hide Streamlit chrome we don't want.
+   Keep the sidebar collapse button visible — drawer collapse is a feature. */
 #MainMenu, footer,
 [data-testid="stToolbar"],
 [data-testid="stDecoration"],
-[data-testid="stStatusWidget"],
-[data-testid="stSidebarCollapseButton"] {{ display: none !important; }}
+[data-testid="stStatusWidget"] {{ display: none !important; }}
 header[data-testid="stHeader"] {{ background: transparent; height: 0; }}
 
 /* Tighter, wider container */
@@ -206,6 +206,130 @@ header[data-testid="stHeader"] {{ background: transparent; height: 0; }}
   font-size: 14px;
   color: {TEXT};
   line-height: 1.5;
+}}
+
+/* Filter icon rail (Build Search secondary nav) */
+.bc-filter-rail {{
+  border: 1px solid {BORDER};
+  border-radius: 10px;
+  background: {BG_2};
+  padding: 8px;
+  position: sticky;
+  top: 1rem;
+}}
+.bc-filter-rail .stButton button {{
+  width: 100% !important;
+  min-height: 44px !important;
+  padding: 0 8px !important;
+  font-size: 18px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: {TEXT_2} !important;
+  border-radius: 6px !important;
+  margin-bottom: 2px !important;
+  text-align: center !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}}
+.bc-filter-rail .stButton button:hover {{
+  background: {BG_3} !important;
+  color: {TEXT} !important;
+}}
+.bc-filter-rail-active .stButton button {{
+  background: {TEXT} !important;
+  color: white !important;
+  border-color: {TEXT} !important;
+}}
+.bc-filter-rail-active .stButton button:hover {{
+  background: {TEXT} !important;
+  color: white !important;
+}}
+.bc-filter-rail-divider {{
+  height: 1px;
+  background: {BORDER};
+  margin: 8px 4px;
+}}
+
+/* Filter content panel (the expanded section next to the rail) */
+.bc-filter-panel {{
+  border: 1px solid {BORDER};
+  border-radius: 10px;
+  padding: 16px 18px;
+  background: white;
+  min-height: 100px;
+}}
+.bc-filter-panel-header {{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: -4px 0 12px 0;
+}}
+.bc-filter-panel-title {{
+  font-size: 14px;
+  font-weight: 600;
+  color: {TEXT};
+  letter-spacing: -0.01em;
+}}
+.bc-filter-panel-empty {{
+  color: {TEXT_3};
+  font-size: 13px;
+  text-align: center;
+  padding: 24px 12px;
+  line-height: 1.5;
+}}
+
+/* ICP card layout */
+.bc-icp-card {{
+  border: 1px solid {BORDER};
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  background: white;
+}}
+.bc-icp-card-header {{
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}}
+.bc-icp-name {{
+  font-size: 15px;
+  font-weight: 600;
+  color: {TEXT};
+  letter-spacing: -0.01em;
+}}
+.bc-icp-time {{
+  font-size: 11.5px;
+  color: {TEXT_3};
+}}
+.bc-icp-summary {{
+  color: {TEXT_2};
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}}
+
+/* Run-history detail grid */
+.bc-run-grid {{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+  margin: 12px 0;
+}}
+.bc-run-detail-label {{
+  color: {TEXT_3};
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}}
+.bc-run-detail-value {{
+  color: {TEXT};
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 2px;
+  font-feature-settings: 'tnum' 1;
 }}
 
 /* Sample preview row */

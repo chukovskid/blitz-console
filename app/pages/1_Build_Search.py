@@ -1,4 +1,4 @@
-"""Build Search — Apollo-style filter screen."""
+"""Build Search — VSCode-style filter rail."""
 
 from __future__ import annotations
 
@@ -45,13 +45,15 @@ with st.sidebar:
     design.sidebar_brand()
 
 
-# ---- session state init ----
+# ---- session state ----
 if "filters" not in st.session_state:
     st.session_state.filters = SearchFilters()
 if "options" not in st.session_state:
     st.session_state.options = RunOptions()
 if "count_mode" not in st.session_state:
     st.session_state.count_mode = "On click"
+if "active_filter" not in st.session_state:
+    st.session_state.active_filter = None
 if "last_count_at" not in st.session_state:
     st.session_state.last_count_at = None
 if "preview_results" not in st.session_state:
@@ -64,36 +66,58 @@ options: RunOptions = st.session_state.options
 # ---- header ----
 design.page_header(
     title="Build search",
-    subtitle="Pick a preset or build filters. Preview the count, then run.",
+    subtitle="Pick filters from the rail. Preview the count, then run.",
     eyebrow="Prospecting",
 )
 
 
-# ---- 2-column main layout ----
-left, right = st.columns([1, 1.4], gap="large")
+# ---- Quick presets row at top ----
+preset_cols = st.columns(len(filter_panel.PRESETS) + 1)
+for i, (name, builder) in enumerate(filter_panel.PRESETS.items()):
+    if preset_cols[i].button(name, key=f"preset_{i}",
+                             use_container_width=True):
+        st.session_state.filters = builder()
+        st.session_state.active_filter = None
+        st.rerun()
+preset_cols[-1].markdown(
+    f'<p style="color:{design.TEXT_3};font-size:11.5px;margin-top:8px;'
+    f'text-align:right;">Quick presets</p>',
+    unsafe_allow_html=True,
+)
+
+st.markdown('<div style="height:0.6rem"></div>', unsafe_allow_html=True)
 
 
-# ============== LEFT: filters ==============
-with left:
-    filter_panel.render(filters, container=st.container())
+# ---- 3-column main layout ----
+rail_col, panel_col, action_col = st.columns([0.5, 2, 3], gap="medium")
 
 
-# ============== RIGHT: status, run, sample ==============
-with right:
+# ============== ICON RAIL ==============
+with rail_col:
+    filter_panel.render_rail(filters)
+
+
+# ============== ACTIVE FILTER PANEL ==============
+with panel_col:
+    filter_panel.render_active_section(filters)
+
+
+# ============== STATUS + ACTIONS ==============
+with action_col:
     body = filters.to_search_body()
     filter_hash = hashlib.sha1(json.dumps(body, sort_keys=True).encode()).hexdigest()
 
-    # ----- Plain-English summary -----
+    # Plain-English summary
     summary = filter_summary(filters)
     if summary:
         design.summary_box(summary)
     else:
         design.empty_state(
-            "<b>Pick a preset</b> on the left, or open a filter section "
-            "to start. The match count and cost will appear here."
+            "<b>Pick a preset</b> above, or click an icon on the rail "
+            "to start building your filters."
         )
 
-    # ----- Match count, cost, balance -----
+    # Count fetch
     def _get_count(force: bool = False) -> tuple[int | None, str]:
         if not body:
             return None, "none"
@@ -125,7 +149,7 @@ with right:
             if cached is not None:
                 total, source = cached, "cache"
 
-    # Cost estimate
+    # Cost
     target = options.target_leads
     capped = min(total, target) if total is not None else 0
     enrich_cr = capped if options.enrich_emails else 0
@@ -139,7 +163,6 @@ with right:
         pass
 
     st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
-
     m1, m2, m3 = st.columns(3)
     with m1:
         st.metric("Matches", f"{total:,}" if total is not None else "—")
@@ -149,8 +172,7 @@ with right:
     with m3:
         st.metric("Balance", f"{balance:,}" if balance is not None else "—")
 
-    # Refresh row
-    rr1, rr2, rr3 = st.columns([1.2, 1, 1])
+    rr1, rr2, rr3 = st.columns([1.4, 1, 1])
     with rr1:
         if total is not None and options.enrich_emails:
             st.caption(f"≈ {expected_emails:,} verified emails (58% rate)")
@@ -171,9 +193,16 @@ with right:
             _get_count(force=True)
             st.rerun()
 
-    # ----- Run options -----
+    # Active filter chips
     st.markdown(
-        '<p class="bc-eyebrow" style="margin:1.6rem 0 6px;">Run options</p>',
+        '<p class="bc-eyebrow" style="margin:1.4rem 0 6px;">Active filters</p>',
+        unsafe_allow_html=True,
+    )
+    filter_panel.render_active_chips(filters)
+
+    # Run options
+    st.markdown(
+        '<p class="bc-eyebrow" style="margin:1.4rem 0 6px;">Run options</p>',
         unsafe_allow_html=True,
     )
     o1, o2, o3 = st.columns(3)
@@ -197,9 +226,9 @@ with right:
         value=options.enrich_emails,
     )
 
-    # ----- ICP profile + Reset -----
+    # ICP profile
     saved = db.list_icps()
-    sa, sb, sc = st.columns([1.4, 1.4, 0.6])
+    sa, sb = st.columns(2)
     with sa:
         icp_name = st.text_input(
             "ICP name", placeholder="e.g. saas-founders-us",
@@ -209,11 +238,6 @@ with right:
         options_list = ["Load saved profile…"] + [i["name"] for i in saved]
         chosen = st.selectbox("Load", options_list,
                               label_visibility="collapsed")
-    with sc:
-        if st.button("Reset", use_container_width=True):
-            st.session_state.filters = SearchFilters()
-            st.session_state.options = RunOptions()
-            st.rerun()
 
     sb1, sb2 = st.columns(2)
     with sb1:
@@ -236,9 +260,8 @@ with right:
                 )
                 st.rerun()
 
-    # ----- Run + Preview row -----
+    # Run + Preview
     st.markdown('<div style="height:0.6rem"></div>', unsafe_allow_html=True)
-
     run_col, prev_col = st.columns([2, 1])
     with run_col:
         if st.button("Run search", type="primary",
@@ -261,14 +284,11 @@ with right:
                 )
                 spawn_pipeline_run(run_id, filters, options,
                                    os.environ["BLITZ_API_KEY"])
-                st.success(
-                    f"Run #{run_id} started. Watch it on **Run history**."
-                )
-
+                st.success(f"Run #{run_id} started. Watch it on **Run history**.")
     with prev_col:
         if st.button("Preview 5 (5 cr)", use_container_width=True,
                      disabled=not body,
-                     help="Sanity-check the ICP. Returns 5 sample matches."):
+                     help="Sample 5 matching profiles to sanity-check the ICP."):
             try:
                 with st.spinner("Loading 5 matches…"):
                     resp = preview_people(body, n=5)
@@ -276,11 +296,9 @@ with right:
             except BlitzError as e:
                 st.error(str(e))
 
-    # ----- Sample preview results -----
     if st.session_state.preview_results:
         st.markdown(
-            '<p class="bc-eyebrow" style="margin:1.6rem 0 6px;">'
-            'Sample (top 5)</p>',
+            '<p class="bc-eyebrow" style="margin:1.4rem 0 6px;">Sample (5)</p>',
             unsafe_allow_html=True,
         )
         for p in st.session_state.preview_results:
@@ -299,7 +317,6 @@ with right:
                 unsafe_allow_html=True,
             )
 
-    # ----- Show JSON -----
     if st.toggle("Show request JSON", value=False):
         st.markdown(
             f'<p class="bc-eyebrow" style="margin-top:1rem;">'
